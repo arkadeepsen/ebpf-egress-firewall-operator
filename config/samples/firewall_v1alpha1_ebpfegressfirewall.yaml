@@ -1,0 +1,12 @@
+apiVersion: firewall.arkadeepsen.io/v1alpha1
+kind: EbpfEgressFirewall
+metadata:
+  labels:
+    app.kubernetes.io/name: ebpfegressfirewall
+    app.kubernetes.io/instance: ebpfegressfirewall-sample
+    app.kubernetes.io/part-of: ebpf-egress-firewall-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: ebpf-egress-firewall-operator
+  name: ebpfegressfirewall-sample
+spec:
+  # TODO(user): Add fields here

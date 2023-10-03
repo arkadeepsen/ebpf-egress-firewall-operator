@@ -1,0 +1,5 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- firewall_v1alpha1_ebpfegressfirewall.yaml
+- firewall_v1alpha1_ebpfegressfirewallfeature.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

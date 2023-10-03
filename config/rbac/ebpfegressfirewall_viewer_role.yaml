@@ -1,0 +1,27 @@
+# permissions for end users to view ebpfegressfirewalls.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: ebpfegressfirewall-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: ebpf-egress-firewall-operator
+    app.kubernetes.io/part-of: ebpf-egress-firewall-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: ebpfegressfirewall-viewer-role
+rules:
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewalls
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewalls/status
+  verbs:
+  - get

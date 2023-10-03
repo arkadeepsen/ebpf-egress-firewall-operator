@@ -1,0 +1,57 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: ebpf-egress-firewall-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: EbpfEgressFirewallFeature is the Schema for the ebpfegressfirewallfeatures
+        API
+      displayName: Ebpf Egress Firewall Feature
+      kind: EbpfEgressFirewallFeature
+      name: ebpfegressfirewallfeatures.firewall.arkadeepsen.io
+      version: v1alpha1
+    - description: EbpfEgressFirewall describes the egress firewall rules for a Namespace.
+        Traffic from pod will be checked against the rules. By default, if there are
+        no EbpfEgressFirewall, or no rule matches the traffic, then the traffic will
+        be allowed.
+      displayName: Ebpf Egress Firewall
+      kind: EbpfEgressFirewall
+      name: ebpfegressfirewalls.firewall.arkadeepsen.io
+      version: v1alpha1
+  description: Egress Firewall based on eBPF
+  displayName: eBPF Egress Firewall Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - eBPF
+  - firewall
+  links:
+  - name: Ebpf Egress Firewall Operator
+    url: https://ebpf-egress-firewall-operator.domain
+  maintainers:
+  - email: arkadeep.sen8@gmail.com
+    name: arkadeepsen
+  maturity: alpha
+  provider:
+    name: Arkadeep Sen
+  version: 0.0.0

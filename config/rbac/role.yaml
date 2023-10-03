@@ -1,0 +1,59 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewallfeatures
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewallfeatures/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewallfeatures/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewalls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewalls/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - firewall.arkadeepsen.io
+  resources:
+  - ebpfegressfirewalls/status
+  verbs:
+  - get
+  - patch
+  - update
