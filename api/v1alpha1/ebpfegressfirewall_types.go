@@ -40,27 +40,25 @@ type EbpfEgressFirewallSpec struct {
 	// allowRules specify the list of rules for allowing connections.
 	AllowRules []AllowRule `json:"allowRules,omitempty"`
 	// denyRules specify the list of rules for denying connections.
-	DenyRules []AllowRule `json:"denyRules,omitempty"`
+	DenyRules []DenyRule `json:"denyRules,omitempty"`
 }
 
 // AllowRule defines a rule to allow connections.
 type AllowRule struct {
-	CommonRule `json:",inline"`
+	// ports specify what ports and protocols the rule applies to
+	// +optional
+	Ports []FirewallPort `json:"ports,omitempty"`
+	// to is the target that traffic is allowed/denied to
+	To AllowRuleDestination `json:"to"`
 }
 
 // DenyRule defines a rule to deny connections.
 type DenyRule struct {
-	CommonRule `json:",inline"`
-}
-
-// CommonRule defines the fields shared by AllowRule and DenyRule.
-type CommonRule struct {
 	// ports specify what ports and protocols the rule applies to
 	// +optional
 	Ports []FirewallPort `json:"ports,omitempty"`
-	// cidrSelector is the CIDR range to allow/deny traffic to.
-	// +kubebuilder:validation:Pattern=`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$|^s*((([0-9A-Fa-f]{1,4}:){7}(:|([0-9A-Fa-f]{1,4})))|(([0-9A-Fa-f]{1,4}:){6}:([0-9A-Fa-f]{1,4})?)|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){0,1}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){0,2}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){0,3}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){0,4}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){0,5}):([0-9A-Fa-f]{1,4})?))|(:(:|((:[0-9A-Fa-f]{1,4}){1,7}))))(%.+)?s*/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$`
-	CIDRSelector string `json:"cidrSelector,omitempty"`
+	// to is the target that traffic is allowed/denied to
+	To DenyRuleDestination `json:"to"`
 }
 
 // FirewallPort specifies the port to allow or deny traffic to
@@ -72,6 +70,52 @@ type FirewallPort struct {
 	// +kubebuilder:validation:Minimum:=1
 	// +kubebuilder:validation:Maximum:=65535
 	Port int32 `json:"port"`
+}
+
+// AllowRuleDestination is the target that traffic is allowed to
+type AllowRuleDestination struct {
+	// +kubebuilder:validation:Enum:="CIDR";"DNS";"Node"
+	// +kubebuilder:validation:Required
+	DestinationType string `json:"destinationType,omitempty"`
+	// CIDR is the configuration for CIDR destination.
+	// +optional.
+	CIDR *CIDRConfig `json:"cidr,omitempty"`
+	// DNS is the configuration for DNS destination.
+	// +optional.
+	DNS *DNSConfig `json:"dns,omitempty"`
+	// Node is the configuration for Node destination.
+	// +optional.
+	Node *NodeConfig `json:"node,omitempty"`
+}
+
+// DenyRuleDestination is the target that traffic is denied to
+type DenyRuleDestination struct {
+	// +kubebuilder:validation:Enum:="CIDR";"Node"
+	// +kubebuilder:validation:Required
+	DestinationType string `json:"destinationType,omitempty"`
+	// CIDR is the configuration for CIDR destination.
+	// +optional.
+	CIDR *CIDRConfig `json:"cidr,omitempty"`
+	// Node is the configuration for Node destination.
+	// +optional.
+	Node *NodeConfig `json:"node,omitempty"`
+}
+
+type CIDRConfig struct {
+	// cidrSelector is the CIDR range to allow/deny traffic to.
+	// +kubebuilder:validation:Format=cidr
+	CIDRSelector string `json:"cidrSelector"`
+}
+
+type DNSConfig struct {
+	// dnsName is the domain name to allow/deny traffic to.
+	// +kubebuilder:validation:Pattern=`^(\*\.)?([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?\.)+[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?\.?$`
+	DNSName string `json:"dnsName"`
+}
+
+type NodeConfig struct {
+	// nodeSelector will allow/deny traffic to the Kubernetes node IP of selected nodes.
+	NodeSelector *metav1.LabelSelector `json:"nodeSelector"`
 }
 
 // EbpfEgressFirewallStatus defines the observed state of EbpfEgressFirewall
