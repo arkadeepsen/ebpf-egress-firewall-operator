@@ -30,9 +30,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	firewallv1alpha1 "github.com/arkadeepsen/ebpf-egress-firewall-operator/api/v1alpha1"
-	"github.com/arkadeepsen/ebpf-egress-firewall-operator/controllers"
+	"github.com/arkadeepsen/ebpf-egress-firewall-operator/pkg/controllers"
+	daemon "github.com/arkadeepsen/ebpf-egress-firewall-operator/pkg/controllers/daemon"
+	ocpnetworkv1alpha1 "github.com/openshift/api/network/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -45,6 +48,8 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(firewallv1alpha1.AddToScheme(scheme))
+
+	utilruntime.Must(ocpnetworkv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -62,9 +67,10 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: server.Options{
+			BindAddress: metricsAddr,
+		},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         false,
 	})
@@ -73,9 +79,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.EbpfEgressFirewallReconciler{
+	if err = (&daemon.EbpfEgressFirewallReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Cache:  mgr.GetCache(),
+		Config: daemon.Config{
+			DNSNameResolverNamespace: controllers.DNSNameResolverNamespace,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EbpfEgressFirewall")
 		os.Exit(1)

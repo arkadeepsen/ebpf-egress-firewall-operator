@@ -72,11 +72,19 @@ type FirewallPort struct {
 	Port int32 `json:"port"`
 }
 
+type DestinationType string
+
+const (
+	CIDR DestinationType = "CIDR"
+	DNS  DestinationType = "DNS"
+	Node DestinationType = "Node"
+)
+
 // AllowRuleDestination is the target that traffic is allowed to
 type AllowRuleDestination struct {
 	// +kubebuilder:validation:Enum:="CIDR";"DNS";"Node"
 	// +kubebuilder:validation:Required
-	DestinationType string `json:"destinationType,omitempty"`
+	DestinationType DestinationType `json:"destinationType,omitempty"`
 	// CIDR is the configuration for CIDR destination.
 	// +optional.
 	CIDR *CIDRConfig `json:"cidr,omitempty"`
@@ -92,7 +100,7 @@ type AllowRuleDestination struct {
 type DenyRuleDestination struct {
 	// +kubebuilder:validation:Enum:="CIDR";"Node"
 	// +kubebuilder:validation:Required
-	DestinationType string `json:"destinationType,omitempty"`
+	DestinationType DestinationType `json:"destinationType,omitempty"`
 	// CIDR is the configuration for CIDR destination.
 	// +optional.
 	CIDR *CIDRConfig `json:"cidr,omitempty"`

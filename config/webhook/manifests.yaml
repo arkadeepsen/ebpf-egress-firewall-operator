@@ -1,0 +1,27 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-firewall-arkadeepsen-io-v1alpha1-ebpfegressfirewall
+  failurePolicy: Fail
+  name: vebpfegressfirewall.kb.io
+  rules:
+  - apiGroups:
+    - firewall.arkadeepsen.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - ebpfegressfirewalls
+  sideEffects: None

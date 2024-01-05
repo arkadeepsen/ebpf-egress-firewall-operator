@@ -30,9 +30,13 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	firewallv1alpha1 "github.com/arkadeepsen/ebpf-egress-firewall-operator/api/v1alpha1"
-	"github.com/arkadeepsen/ebpf-egress-firewall-operator/controllers"
+	operator "github.com/arkadeepsen/ebpf-egress-firewall-operator/pkg/controllers/operator"
+	"github.com/arkadeepsen/ebpf-egress-firewall-operator/pkg/webhooks"
+	ocpnetworkv1alpha1 "github.com/openshift/api/network/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -45,6 +49,8 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(firewallv1alpha1.AddToScheme(scheme))
+
+	utilruntime.Must(ocpnetworkv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -66,9 +72,15 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: server.Options{
+			BindAddress: metricsAddr,
+		},
+		WebhookServer: &webhook.DefaultServer{
+			Options: webhook.Options{
+				Port: 9443,
+			},
+		},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "88e3567b.arkadeepsen.io",
@@ -89,11 +101,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.EbpfEgressFirewallFeatureReconciler{
+	if err = (&operator.EbpfEgressFirewallFeatureReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EbpfEgressFirewallFeature")
+		os.Exit(1)
+	}
+	if err = (&webhooks.EbpfEgressFirewallWebhook{
+		Cache: mgr.GetCache(),
+	}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "EbpfEgressFirewall")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
